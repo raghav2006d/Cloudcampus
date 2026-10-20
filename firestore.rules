@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && request.auth.token.admin == true; }
+    function owns(uid) { return signedIn() && request.auth.uid == uid; }
+    function validCategory(v) { return v in ['Wi-Fi & Networking','Laboratory Equipment','Classroom','Hostel Maintenance','Electrical','Library','Cleanliness','Other']; }
+    function validPriority(v) { return v in ['Low','Medium','High']; }
+    function validStatus(v) { return v in ['Pending','In Progress','Resolved']; }
+    match /users/{uid} {
+      allow create: if owns(uid)
+        && request.resource.data.keys().hasOnly(['uid','displayName','email','role','createdAt','updatedAt'])
+        && request.resource.data.uid == uid
+        && request.resource.data.role == 'student'
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() >= 1
+        && request.resource.data.displayName.size() <= 80;
+      allow read: if owns(uid) || isAdmin();
+      allow update: if (owns(uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName','updatedAt'])
+          && request.resource.data.displayName is string && request.resource.data.displayName.size() >= 1
+          && request.resource.data.displayName.size() <= 80 && request.resource.data.updatedAt == request.time)
+        || (isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName','updatedAt'])
+          && request.resource.data.updatedAt == request.time);
+      allow delete: if false;
+    }
+    match /complaints/{complaintId} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['title','description','category','location','priority','status','userId','createdAt','updatedAt','resolvedAt','resolutionNote'])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.title is string && request.resource.data.title.size() >= 5 && request.resource.data.title.size() <= 120
+        && request.resource.data.description is string && request.resource.data.description.size() >= 15 && request.resource.data.description.size() <= 2000
+        && validCategory(request.resource.data.category)
+        && request.resource.data.location is string && request.resource.data.location.size() <= 120
+        && validPriority(request.resource.data.priority)
+        && request.resource.data.status == 'Pending'
+        && request.resource.data.resolutionNote == ''
+        && request.resource.data.resolvedAt == null
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow read: if (signedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','priority','resolutionNote','updatedAt','resolvedAt'])
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.title == resource.data.title
+        && request.resource.data.description == resource.data.description
+        && request.resource.data.category == resource.data.category
+        && request.resource.data.location == resource.data.location
+        && validStatus(request.resource.data.status)
+        && validPriority(request.resource.data.priority)
+        && request.resource.data.updatedAt == request.time
+        && (request.resource.data.status == 'Resolved'
+          ? request.resource.data.resolvedAt == request.time
+          : request.resource.data.resolvedAt == null)
+        && request.resource.data.resolutionNote is string
+        && request.resource.data.resolutionNote.size() <= 2000;
+      allow delete: if false;
+    }
+    match /statusHistory/{historyId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['complaintId','userId','previousStatus','newStatus','actorUid','note','createdAt'])
+        && request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.userId is string
+        && request.resource.data.complaintId is string
+        && get(/databases/$(database)/documents/complaints/$(request.resource.data.complaintId)).data.userId == request.resource.data.userId
+        && request.resource.data.createdAt == request.time
+        && validStatus(request.resource.data.previousStatus)
+        && validStatus(request.resource.data.newStatus)
+        && request.resource.data.note is string && request.resource.data.note.size() <= 2000;
+      allow update, delete: if false;
+    }
+    match /adminAudit/{auditId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['actorUid','action','complaintId','createdAt','metadata'])
+        && request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.action == 'complaint.updated'
+        && request.resource.data.complaintId is string
+        && exists(/databases/$(database)/documents/complaints/$(request.resource.data.complaintId))
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.metadata is map
+        && request.resource.data.metadata.keys().hasOnly(['status','priority'])
+        && validStatus(request.resource.data.metadata.status)
+        && validPriority(request.resource.data.metadata.priority);
+      allow update, delete: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

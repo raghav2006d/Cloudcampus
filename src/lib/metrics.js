@@ -1,0 +1,7 @@
+export const categories = ['Wi-Fi & Networking','Laboratory Equipment','Classroom','Hostel Maintenance','Electrical','Library','Cleanliness','Other']
+export function stats(items){return{total:items.length,pending:items.filter(x=>x.status==='Pending').length,progress:items.filter(x=>x.status==='In Progress').length,resolved:items.filter(x=>x.status==='Resolved').length}}
+export function statusData(items){return[{name:'Pending',value:items.filter(x=>x.status==='Pending').length},{name:'In progress',value:items.filter(x=>x.status==='In Progress').length},{name:'Resolved',value:items.filter(x=>x.status==='Resolved').length}]}
+export function categoryData(items){return categories.map(c=>({name:shortCategory(c),count:items.filter(i=>i.category===c).length})).filter(i=>i.count>0)}
+export function averageResolution(items){const durations=items.filter(i=>i.status==='Resolved'&&i.createdAt&&i.resolvedAt).map(i=>toDate(i.resolvedAt)-toDate(i.createdAt)).filter(n=>Number.isFinite(n)&&n>=0);if(!durations.length)return '—';const mins=Math.round(durations.reduce((a,b)=>a+b,0)/durations.length/60000);if(mins<60)return `${mins}m`;const hours=Math.floor(mins/60),days=Math.floor(hours/24);return days?`${days}d ${hours%24}h`:`${hours}h`}
+function shortCategory(c){return({'Wi-Fi & Networking':'Wi-Fi','Laboratory Equipment':'Labs','Classroom':'Class','Hostel Maintenance':'Hostel','Electrical':'Electrical','Library':'Library','Cleanliness':'Cleanliness','Other':'Other'}[c]||c)}
+function toDate(v){return typeof v?.toDate==='function'?v.toDate():new Date(v)}
