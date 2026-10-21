@@ -17,7 +17,7 @@
 6. Deploy rules and indexes: `firebase login`, `firebase use --add`, then `firebase deploy --only firestore:rules,firestore:indexes`.
 7. Register a student and submit a test report after local development is running.
 
-No real Firebase project or credentials are linked in the current workspace. Do not copy sample or invented values.
+The current Firebase project is `cloudcampus-e47ad`, on the Spark plan with no billing account linked. Its Web App and Email/Password provider are configured, and Firestore is deployed in `asia-south1` (Mumbai). Local Web App settings are in the ignored `.env.local` file; do not commit them. The default database is eligible for the Firestore free quota. Monitor usage in Firebase Console.
 
 ## Provision the first administrator
 
@@ -36,14 +36,14 @@ For a dedicated provisioner identity, grant only the project roles needed to upd
 
 Vercel Hobby is only for personal/non-commercial use. Confirm your educational presentation is eligible under current terms. If not, do not upgrade automatically; use local Docker for the demonstration or ask the institution for an approved host.
 
-1. Create an empty GitHub repository, then from this local folder run `git remote add origin https://github.com/<your-user>/cloudcampus.git`, `git add .`, `git commit -m "Build CloudCampus case study app"`, and `git push -u origin main`. Replace the placeholder with your repository URL. The local Git repository is initialized, but no remote or commit exists yet.
+1. The GitHub repository is already connected at `https://github.com/raghav2006d/Cloudcampus`. Push updates to its `main` branch before importing it.
 2. Sign in to Vercel and import the existing GitHub repository under your personal Hobby account. Do not create a paid team.
 3. Confirm framework preset **Vite**, install command `npm install` (or `npm ci` after lockfile exists), build command `npm run build`, output `dist`.
 4. In Project Settings → Environment Variables, add the four `VITE_FIREBASE_*` values for **Production** and **Preview**. Use the same Firebase project for previews or a separately configured Firebase project; never include service-account credentials. These client values are embedded in the browser bundle and must be protected by Firestore rules.
 5. Deploy. Vercel creates preview deployments for pushes and a production deployment from the configured production branch. Verify `/login`, `/register`, `/student/dashboard`, and `/admin/dashboard` refresh correctly. `vercel.json` provides the SPA rewrite.
 6. A change to environment values requires a new deployment. Confirm Vercel remains on Hobby and monitor usage in its dashboard.
 
-No Vercel CLI project authentication or GitHub repository is configured in this workspace; no deployment has been performed.
+No Vercel CLI project authentication or Vercel deployment is configured. The Firebase Hosting deployment is live at `https://cloudcampus-e47ad.web.app`.
 
 ## Docker Desktop
 

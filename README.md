@@ -44,4 +44,6 @@ Full Firebase and Vercel steps are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). 
 
 ## Deployment status
 
-This workspace does not contain a linked GitHub repository, Firebase project, or authenticated Vercel project. No public deployment has been performed and no URL is claimed. Follow the deployment guide when those accounts and project settings are ready. Vercel Hobby is restricted to personal/non-commercial use; confirm the intended educational demonstration qualifies under current terms.
+The live web app is hosted at [https://cloudcampus-e47ad.web.app](https://cloudcampus-e47ad.web.app). It uses Firebase project `cloudcampus-e47ad`: Email/Password Authentication is enabled, and the default Firestore database is in `asia-south1` (Mumbai) with the repository rules and indexes deployed. The project has no billing account linked; monitor Spark quotas in Firebase Console. Local Web App settings are in the ignored `.env.local` file and are not committed.
+
+The GitHub repository is [raghav2006d/Cloudcampus](https://github.com/raghav2006d/Cloudcampus). Vercel is not configured for this project.
